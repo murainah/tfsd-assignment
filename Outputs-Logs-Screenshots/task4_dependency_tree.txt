@@ -1,0 +1,4 @@
+dependency_project@1.0.0 \\wsl.localhost\Ubuntu\home\abubakri\tfsd\todo3\dependency_project
+`-- ollama@0.5.18
+  `-- whatwg-fetch@3.6.20
+
