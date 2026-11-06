@@ -1,0 +1,12 @@
+=== GitHub SSH Authentication ===
+Hi murainah! You've successfully authenticated, but GitHub does not provide shell access.
+
+=== Git Remote ===
+origin	git@github.com:murainah/tfsd-assignment.git (fetch)
+origin	git@github.com:murainah/tfsd-assignment.git (push)
+
+=== Pushed Commit ===
+323525d Demonstrate GitHub SSH push for Question 7
+
+=== Remote Branch ===
+323525d9ebef7138759d3057e193a8390316faf6	refs/heads/main

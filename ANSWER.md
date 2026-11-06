@@ -1,5 +1,3 @@
-
-
 ## Question 1 — Python Wheel Package 
 
 
@@ -253,9 +251,20 @@ The `npm audit` command reported:
 
 **0 vulnerabilities found.**
 
-### 4.3 Interpretation
+### 4.3 Packages installed
 
-The dependency tree is small, with one direct dependency and one transitive dependency. The npm security audit found no known vulnerabilities in the installed dependencies at the time of testing. However, this does not guarantee that the packages are free from all security issues.
+**2 packages are installed:** `ollama@0.5.18` (direct) and `whatwg-fetch@3.6.20` (transitive), plus the root project itself. `ollama` also declares nine development dependencies, but npm does not install a dependency's dev dependencies, so they are not in the tree.
+
+### 4.4 What the audit reported and what I would do
+
+`npm audit` reported **0 vulnerabilities** (info, low, moderate, high and critical were all 0) for the 2 installed packages. The tree is small, so there is little attack surface.
+
+Because nothing was reported, no fix is needed now. What I would do is:
+- keep `package-lock.json` committed, so the versions that were audited are the ones that get installed;
+- re-run `npm audit` regularly (for example in CI, or with Dependabot alerts), because new vulnerabilities can be disclosed later for versions that are clean today;
+- if a vulnerability appears, first try `npm audit fix` or update `ollama`; if it comes from `whatwg-fetch`, check whether a newer `ollama` release depends on a fixed version.
+
+A clean audit only covers vulnerabilities that are already publicly known. It does not prove the packages are free from security issues.
 
 **Outputs:**
 
@@ -277,25 +286,78 @@ The generated SBOM contains two dependency components:
 | ollama | 0.5.18 | library |
 | whatwg-fetch | 3.6.20 | library |
 
+The SBOM was generated with `@cyclonedx/cyclonedx-npm` 6.0.1 in CycloneDX 1.6 JSON format and lists 2 components plus the root project.
+
 ### Description of Three SBOM Entries
 
-**1. bomFormat: CycloneDX**
+**1. ollama 0.5.18 (direct dependency)**
 
-Identifies the SBOM format as CycloneDX, a standard used to document software components and their dependencies.
+- **What it is:** a JavaScript client library for the Ollama API (MIT license).
+- **Where it came from:** the npm registry. The SBOM records the tarball URL `https://registry.npmjs.org/ollama/-/ollama-0.5.18.tgz`, the package URL `pkg:npm/ollama@0.5.18`, and a SHA-512 hash of the tarball, so the exact file can be verified. It is installed at `node_modules/ollama`.
+- **Why it is there:** my project depends on it directly. In the `dependencies` section of the SBOM, the root component `dependency_project` lists `ollama` in its `dependsOn`.
 
-**2. ollama (0.5.18)**
+**2. whatwg-fetch 3.6.20 (transitive dependency)**
 
-The direct dependency of the project. It is a JavaScript library used to communicate with the Ollama API. The SBOM identifies it as a library component.
+- **What it is:** a `window.fetch` polyfill (MIT license) that provides the Fetch API where it is not available.
+- **Where it came from:** also the npm registry (`pkg:npm/whatwg-fetch@3.6.20`, with its own SHA-512 hash), installed at `node_modules/whatwg-fetch`. Its upstream repository is `github.com/github/fetch`.
+- **Why it is there:** I did not ask for it. It is there only because `ollama` depends on it. The dependency graph shows `ollama@0.5.18` depending on `whatwg-fetch@3.6.20`, and no direct link from my project.
 
-**3. whatwg-fetch (3.6.20)**
+**3. dependency_project 1.0.0 (the root component)**
 
-A transitive dependency required by `ollama`. It provides Fetch API functionality for HTTP requests and is also classified as a library.
-
-The SBOM records the software components and their versions, making it easier to track dependencies and support security analysis.
+- **What it is:** my own project, recorded in `metadata.component` as an application with the ISC license.
+- **Where it came from:** it is not downloaded. It is the local project the SBOM was generated for (`pkg:npm/dependency_project@1.0.0`).
+- **Why it is there:** an SBOM needs a root to describe. Everything else in the file hangs from this component, so `ollama` and `whatwg-fetch` are listed as what it depends on, directly and indirectly.
 
 **Output:** [Task 5 — CycloneDX SBOM](Outputs-Logs-Screenshots/task5_sbom.json)
 
+
 ## 6. GitHub Profile
 
-**GitHub Profile:** https://github.com/murainah
+**GitHub Profile:** https://github.com/murainah 
 
+
+## Question 7 — GitHub SSH Authentication and Push
+
+I registered my public key with GitHub and successfully authenticated using SSH over port 443.
+
+I configured the repository's remote using SSH and successfully pushed `question7_push.txt` to GitHub.
+
+**Repository:** https://github.com/murainah/tfsd-assignment
+
+**Evidence:**
+- [SSH public key registered on GitHub (settings/keys)](Outputs-Logs-Screenshots/task7_github_ssh_key.png)
+- [Terminal: SSH authentication, remote check printing OK, and push to GitHub](Outputs-Logs-Screenshots/task7_ssh_push.png)
+- [SSH authentication and push log](Outputs-Logs-Screenshots/task7_ssh_push.txt)
+
+Note: the terminal screenshot was taken after the later Question 8 commit (`9f4db04`), so it shows that commit as `HEAD`. The Question 7 push itself is commit `323525d`, shown in the log above.
+
+
+## Question 8 — GPG-Signed Commit
+
+I generated an Ed25519 GPG key, registered its public key with GitHub, and configured Git to sign commits. I then created and pushed a GPG-signed commit, which GitHub marked as **Verified**.
+
+**Verified commit:** https://github.com/murainah/tfsd-assignment/commit/9f4db043909b41a1b3ee632cdeb35c2a6361c482
+
+**Evidence:**
+- [Registered GPG key screenshot](Outputs-Logs-Screenshots/task8_github_gpg_key.png)
+- [Verified commit screenshot](Outputs-Logs-Screenshots/task8_verified_commit.png)
+
+
+## Question 9 — GitHub Pages
+
+I created and published a personal website using GitHub Pages. I verified its accessibility using the required `curl` command, which returned HTTP status code `200`.
+
+**Website:** https://murainah.github.io
+
+**Evidence:** [GitHub Pages HTTP 200 screenshot](Outputs-Logs-Screenshots/task9_github_pages.png)
+
+
+## Question 10 — GitHub Issues
+
+### GitHub issues on projects I did not create
+
+1. **pandas** — [ENH: DataFrame.merge raises bare KeyError without saying which DataFrame is missing the key column](https://github.com/pandas-dev/pandas/issues/71819)  
+   `merge(on=...)` raises `KeyError: 'customer_id'` without saying whether the left or the right DataFrame is missing the column. I reproduced it on pandas 2.3.3, included a minimal example, the code location, a suggested error message, and explained how it differs from the related closed issue #65553.
+
+2. **requests** — [Invalid `params` type (e.g. int) raises misleading "TypeError: Cannot mix str and non-str arguments"](https://github.com/psf/requests/issues/7642)  
+   Passing `params=5` raises an error that comes from `urllib.parse` and never mentions `params`. I reproduced it on requests 2.31.0, included expected vs. actual output and system information, and explained how it differs from the related fixed issue #2844.
